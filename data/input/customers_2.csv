@@ -1,4 +1,5 @@
-id,name,identity_number
-4,Vanessa,12345678B
-5,Francisco,23456789C
-3,Pedro,34567890C
+id,name,age,identity_number
+4,Vanessa,45,12345678B
+5,Francisco,45,23456789C
+3,Pedro,42,34567890C
+

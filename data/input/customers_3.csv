@@ -1,4 +1,5 @@
-id,name,identity_number
-6,Teresa,45678901D
-7,Lucia,90123456E
-1,Jose,12345678A
+id,name,identity_number,email
+6,Teresa,45678901D, teresa@none.com
+7,Lucia,90123456E, lucia@none.com
+1,Jose,12345678A,
+
