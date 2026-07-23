@@ -1,0 +1,8 @@
+id,name,identity_number,age,email
+2,Ana,23456789B,,
+4,Vanessa,12345678B,45.0,
+5,Francisco,23456789C,45.0,
+3,Pedro,34567890C,42.0,
+6,Teresa,45678901D,, teresa@none.com
+7,Lucia,90123456E,, lucia@none.com
+1,Jose,12345678A,,
