@@ -16,12 +16,20 @@ def load_csv_files(csv_files):
 
     customer_dataframes = []
     invalid_files = {}
+    read_errors = {}
 
     for file in csv_files:
         print(f"Reading '{file.name}'...")
 
-        customer_data = pd.read_csv(file)
-
+        try:
+            customer_data = pd.read_csv(file)
+        except pd.errors.ParserError as error:
+            read_errors[file.name] = str(error)
+            continue
+        except UnicodeDecodeError as error:
+            read_errors[file.name] = str(error)
+            continue
+        
         missing_columns = validate_dataframe(customer_data)
         if missing_columns:
             invalid_files[file.name] = missing_columns
@@ -29,7 +37,7 @@ def load_csv_files(csv_files):
 
         customer_dataframes.append(customer_data)
 
-    return customer_dataframes, invalid_files
+    return customer_dataframes, invalid_files, read_errors
 
 def validate_dataframe(dataframe):
     """Validate that the DataFrame contains the required columns."""
@@ -83,7 +91,7 @@ def main():
 
     print()
 
-    customer_dataframes, invalid_files = load_csv_files(csv_files)
+    customer_dataframes, invalid_files, read_errors = load_csv_files(csv_files)
 
     if invalid_files:
         print("\nFiles that failed validation:")
@@ -91,6 +99,12 @@ def main():
             missing_columns_text=", ".join(sorted(missing_columns))
             print(f"- {file_name} -> "
                 f"Missing required columns: {missing_columns_text}")
+
+    if read_errors:
+        print("\nFiles that couldn't be read:")
+        for file_name, error_message in read_errors.items():
+            print(f"- {file_name} -> "
+                  f"Could not parse CSV file. Error: {error_message}")
 
     if not customer_dataframes:
         print("\nERROR: No valid CSV files could be processed.")
