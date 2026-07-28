@@ -12,7 +12,7 @@ REQUIRED_COLUMNS = {
 
 
 def load_csv_files(csv_files):
-    """Read all CSV files and return a list of DataFrames."""
+    """Read and validate CSV files, returning valid DataFrames and errors."""
 
     customer_dataframes = []
     invalid_files = {}
@@ -24,10 +24,16 @@ def load_csv_files(csv_files):
         try:
             customer_data = pd.read_csv(file)
         except pd.errors.ParserError as error:
-            read_errors[file.name] = str(error)
+            read_errors[file.name] = {
+                "type": "ParserError",
+                "message": str(error)
+            }
             continue
         except UnicodeDecodeError as error:
-            read_errors[file.name] = str(error)
+            read_errors[file.name] = {
+                "type": "UnicodeDecodeError",
+                "message": str(error)
+            }
             continue
         
         missing_columns = validate_dataframe(customer_data)
@@ -48,7 +54,7 @@ def validate_dataframe(dataframe):
 
 
 def merge_data(customer_dataframes):
-    """Merge a list of Dataframes into a single DataFrame."""
+    """Merge a list of DataFrames into a single DataFrame."""
 
     merged_data = pd.concat(customer_dataframes, ignore_index=True)
 
@@ -102,9 +108,19 @@ def main():
 
     if read_errors:
         print("\nFiles that couldn't be read:")
-        for file_name, error_message in read_errors.items():
-            print(f"- {file_name} -> "
-                  f"Could not parse CSV file. Error: {error_message}")
+        for file_name, error in read_errors.items():
+            if error["type"] == "ParserError":
+                error_description = "Could not parse CSV structure."
+            elif error["type"] == "UnicodeDecodeError":
+                error_description = "Could not decode file encoding."
+            else:
+                error_description = "Unknown read error."
+
+            print(
+                f"- {file_name} -> "
+                f"{error_description} "
+                f"Error: {error['message']}"
+            )
 
     if not customer_dataframes:
         print("\nERROR: No valid CSV files could be processed.")
