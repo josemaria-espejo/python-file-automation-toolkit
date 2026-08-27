@@ -56,6 +56,9 @@ def validate_dataframe(dataframe):
 def merge_data(customer_dataframes):
     """Merge a list of DataFrames into a single DataFrame."""
 
+    if not customer_dataframes:
+        raise ValueError("At least one DataFrame is required to merge data.")
+    
     merged_data = pd.concat(customer_dataframes, ignore_index=True)
 
     return merged_data
@@ -68,15 +71,15 @@ def remove_duplicate_customer(merged_data):
 
     return cleaned_data
 
-def export_data(cleaned_data):
+def export_data(cleaned_data, output_folder):
     """Export the cleaned DataFrame to a CSV file."""
 
-    OUTPUT_FOLDER.mkdir(parents=True, exist_ok=True)
+    output_folder.mkdir(parents=True, exist_ok=True)
 
-    output_file = OUTPUT_FOLDER / "merged_customers.csv"
+    output_file = output_folder / "merged_customers.csv"
     cleaned_data.to_csv(output_file, index=False)
 
-    print(f"\nSuccessfully exported cleaned data to: '{output_file}'.")
+    return output_file
 
 
 def main():
@@ -151,7 +154,8 @@ def main():
     print(f"\n{cleaned_data}\n")
 
     # 6. Export cleaned data to CSV.
-    export_data(cleaned_data)
+    output_file = export_data(cleaned_data, OUTPUT_FOLDER)
+    print(f"\nSuccessfully exported cleaned data to: '{output_file}'.")
 
 
 if __name__ == "__main__":

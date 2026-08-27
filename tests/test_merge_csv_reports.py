@@ -1,8 +1,12 @@
 import pandas as pd
+import pytest
 
-from src.merge_csv_reports import remove_duplicate_customer
-from src.merge_csv_reports import validate_dataframe
-from src.merge_csv_reports import merge_data
+from src.merge_csv_reports import (
+    remove_duplicate_customer,
+    validate_dataframe,
+    merge_data,
+    export_data
+)
 
 def test_remove_duplicate_customer():
     customer_data = pd.DataFrame({
@@ -61,3 +65,20 @@ def test_merge_data():
 
     merged_data = merge_data([dataframe1, dataframe2])
     assert expected_dataframe.equals(merged_data)
+
+def test_merge_data_with_empty_list():
+    with pytest.raises(
+        ValueError, 
+        match="At least one DataFrame is required to merge data."
+    ):
+        merge_data([])
+
+def test_export_data(tmp_path): 
+    customer_data = pd.DataFrame({
+        "id": [1, 2],
+        "name": ["Jose", "Ana"],
+        "identity_number": ["12345678A", "23456789B"]
+    })
+
+    exported_file = export_data(customer_data, tmp_path)
+    assert exported_file.exists()
