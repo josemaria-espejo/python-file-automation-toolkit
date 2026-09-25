@@ -126,7 +126,7 @@ def test_load_csv_files_with_valid_csv(tmp_path):
     })
 
     loaded_csvs, invalid_files, read_errors = load_csv_files([valid_csv])
-    assert loaded_csvs[0].equals(expected_dataframe) == 1
+    assert loaded_csvs[0].equals(expected_dataframe)
     assert invalid_files == {}
     assert read_errors == {}
   
