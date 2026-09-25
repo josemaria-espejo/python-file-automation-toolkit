@@ -82,3 +82,7 @@ def test_export_data(tmp_path):
 
     exported_file = export_data(customer_data, tmp_path)
     assert exported_file.exists()
+
+    read_exported_data = pd.read_csv(exported_file)
+    assert customer_data.equals(read_exported_data)
+    
