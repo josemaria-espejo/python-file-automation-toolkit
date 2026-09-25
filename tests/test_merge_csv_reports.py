@@ -5,7 +5,8 @@ from src.merge_csv_reports import (
     remove_duplicate_customer,
     validate_dataframe,
     merge_data,
-    export_data
+    export_data,
+    load_csv_files
 )
 
 def test_remove_duplicate_customer():
@@ -85,4 +86,53 @@ def test_export_data(tmp_path):
 
     read_exported_data = pd.read_csv(exported_file)
     assert customer_data.equals(read_exported_data)
+
+def test_load_csv_files_with_parser_error(tmp_path):
+    malformed_csv = tmp_path / "malformed.csv"
+    malformed_csv.write_text("""id,name,identity_number
+    1,Jose,12345678A
+    2,"Ana,23456789B
+    3,Pedro,34567890C""")
+
+    customer_dataframes, invalid_files, read_errors= load_csv_files([malformed_csv])
+    assert len(customer_dataframes) == 0
+    assert invalid_files == {}
+    assert "malformed.csv" in read_errors
+    assert read_errors["malformed.csv"]["type"] == "ParserError"
+
+def test_load_csv_files_with_missing_columns(tmp_path):
+    missing_columns_csv = tmp_path / "missing_columns.csv"
+    missing_columns_csv.write_text("""id,name
+    1,Jose
+    2,Ana
+    3,Pedro""")
+
+    customer_dataframes, invalid_files, read_errors = load_csv_files([missing_columns_csv])
+    assert len(customer_dataframes) == 0
+    assert read_errors == {}
+    assert "missing_columns.csv" in invalid_files
+    assert invalid_files["missing_columns.csv"] == {"identity_number"}
+
+def test_load_csv_files_with_valid_csv(tmp_path):
+    valid_csv = tmp_path / "valid.csv"
+    valid_csv.write_text("""id,name,identity_number
+    1,Jose,12345678A
+    2,Ana,23456789B
+    3,Pedro,34567890C""")
+    expected_dataframe = pd.DataFrame({
+        "id": [1, 2, 3],
+        "name": ["Jose", "Ana", "Pedro"],
+        "identity_number": ["12345678A", "23456789B", "34567890C"]
+    })
+
+    loaded_csvs, invalid_files, read_errors = load_csv_files([valid_csv])
+    assert loaded_csvs[0].equals(expected_dataframe) == 1
+    assert invalid_files == {}
+    assert read_errors == {}
+  
+
+    
+    
+
+
     
