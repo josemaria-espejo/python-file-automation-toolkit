@@ -1,5 +1,6 @@
 from pathlib import Path
 import pandas as pd
+import sys
 
 INPUT_FOLDER = Path("data/input")
 OUTPUT_FOLDER = Path("data/output")
@@ -64,7 +65,7 @@ def merge_data(customer_dataframes):
     return merged_data
 
 
-def remove_duplicate_customer(merged_data):
+def remove_duplicate_customers(merged_data):
     """Remove duplicate rows based on the 'identity_number' column."""
 
     cleaned_data = merged_data.drop_duplicates(subset = ["identity_number"], keep = "last")
@@ -86,11 +87,11 @@ def main():
 
     # 1.Discover input CSV files.
 
-    csv_files = list(INPUT_FOLDER.glob("*.csv"))
+    csv_files = sorted(INPUT_FOLDER.glob("*.csv"))
 
     if not csv_files:
         print(f"No CSV files found in {INPUT_FOLDER}. Please add CSV files to the input folder and try again.")
-        exit()
+        sys.exit()
 
     print(f"\nFound {len(csv_files)} CSV files in {INPUT_FOLDER}:")
     for file in csv_files:
@@ -127,7 +128,7 @@ def main():
 
     if not customer_dataframes:
         print("\nERROR: No valid CSV files could be processed.")
-        exit()
+        sys.exit()
         
     total_rows = sum(len(dataframe) for dataframe in customer_dataframes)
     print(f"\nSuccessfully loaded {total_rows} rows.")
@@ -141,7 +142,7 @@ def main():
     rows_before = len(merged_data)
     print(f"\nRows before removing duplicates: {rows_before}")
 
-    cleaned_data = remove_duplicate_customer(merged_data)
+    cleaned_data = remove_duplicate_customers(merged_data)
 
     rows_after = len(cleaned_data)
     duplicates_removed = rows_before - rows_after

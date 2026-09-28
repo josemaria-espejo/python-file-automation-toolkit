@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from src.merge_csv_reports import (
-    remove_duplicate_customer,
+    remove_duplicate_customers,
     validate_dataframe,
     merge_data,
     export_data,
@@ -21,7 +21,7 @@ def test_remove_duplicate_customer():
         ]
     })
 
-    cleaned_data = remove_duplicate_customer(customer_data)
+    cleaned_data = remove_duplicate_customers(customer_data)
 
     assert len(cleaned_data) == 3
     assert cleaned_data.iloc[-1]["name"] == "Jose Updated"
@@ -129,8 +129,52 @@ def test_load_csv_files_with_valid_csv(tmp_path):
     assert loaded_csvs[0].equals(expected_dataframe)
     assert invalid_files == {}
     assert read_errors == {}
-  
 
+def test_complete_workflow(tmp_path):
+    input_folder = tmp_path / "input"
+    output_folder = tmp_path / "output"
+
+    input_folder.mkdir()
+
+    csv1 = input_folder / "customers_1.csv"
+    csv1.write_text("""id,name,identity_number
+1,Jose,12345678A
+2,Ana,23456789B
+3,Pedro,34567890C
+""")
+
+    csv2 = input_folder / "customers_2.csv"
+    csv2.write_text("""id,name,identity_number
+4,Maria,45678901D
+5,Jose Updated,12345678A
+""")
+
+    csv_files = list(input_folder.glob("*.csv"))
+                    
+    assert len(csv_files) ==2 
+
+    customer_dataframes, invalid_files, read_errors = load_csv_files(csv_files)
+
+    assert len(customer_dataframes) == 2
+    assert invalid_files == {}
+    assert read_errors == {}
+
+    merged_data = merge_data(customer_dataframes)
+
+    assert len(merged_data) == 5
+
+    cleaned_data = remove_duplicate_customers(merged_data)
+
+    assert len(cleaned_data) == 4
+    assert cleaned_data.iloc[-1]["name"] == "Jose Updated"  
+
+    output_file = export_data(cleaned_data, output_folder)
+
+    assert output_file.exists()
+
+    exported_data = pd.read_csv(output_file)
+
+    assert cleaned_data.reset_index(drop=True).equals(exported_data)
     
     
 
