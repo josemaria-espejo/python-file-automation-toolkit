@@ -82,10 +82,49 @@ def export_data(cleaned_data, output_folder):
 
     return output_file
 
+def display_validation_errors(invalid_files):
+    """Display files that failed validation."""
+
+    if not invalid_files:
+        return
+
+    print("\nFiles that failed validation:")
+
+    for file_name, missing_columns in invalid_files.items():
+                missing_columns_text = ", ".join(sorted(missing_columns))
+                print(
+                    f"- {file_name} -> "
+                    f"Missing required columns: {missing_columns_text}"
+                )
+
+def display_read_errors(read_errors):
+    """Display files that couldn't be read."""
+
+    if not read_errors:
+        return
+
+    print("\nFiles that couldn't be read:")
+
+    for file_name, error in read_errors.items():
+        if error["type"] == "ParserError":
+            error_description = "Could not parse CSV structure."
+        elif error["type"] == "UnicodeDecodeError":
+            error_description = "Could not decode file encoding."
+        else:
+            error_description = "Unknown read error."
+
+        print(
+            f"- {file_name} -> "
+            f"{error_description} "
+            f"Error: {error['message']}"
+        )
+
+
+
 
 def main():
 
-    # 1.Discover input CSV files.
+    # 1. Discover input CSV files.
 
     csv_files = sorted(INPUT_FOLDER.glob("*.csv"))
 
@@ -103,28 +142,9 @@ def main():
 
     customer_dataframes, invalid_files, read_errors = load_csv_files(csv_files)
 
-    if invalid_files:
-        print("\nFiles that failed validation:")
-        for file_name, missing_columns in invalid_files.items():
-            missing_columns_text=", ".join(sorted(missing_columns))
-            print(f"- {file_name} -> "
-                f"Missing required columns: {missing_columns_text}")
+    display_validation_errors(invalid_files)
 
-    if read_errors:
-        print("\nFiles that couldn't be read:")
-        for file_name, error in read_errors.items():
-            if error["type"] == "ParserError":
-                error_description = "Could not parse CSV structure."
-            elif error["type"] == "UnicodeDecodeError":
-                error_description = "Could not decode file encoding."
-            else:
-                error_description = "Unknown read error."
-
-            print(
-                f"- {file_name} -> "
-                f"{error_description} "
-                f"Error: {error['message']}"
-            )
+    display_read_errors(read_errors)
 
     if not customer_dataframes:
         print("\nERROR: No valid CSV files could be processed.")
@@ -150,9 +170,6 @@ def main():
     # 5. Display results.
     print(f"Rows after removing duplicates: {rows_after}")
     print(f"Duplicates removed: {duplicates_removed}")
-
-    print("\nMerged customer data:")
-    print(f"\n{cleaned_data}\n")
 
     # 6. Export cleaned data to CSV.
     output_file = export_data(cleaned_data, OUTPUT_FOLDER)
